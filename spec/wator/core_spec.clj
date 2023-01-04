@@ -58,6 +58,14 @@
         (should (#{[0 0] [0 1] [0 2]
                    [1 0] [1 2]
                    [2 0] [2 1] [2 2]}
-                 loc))))))
+                 loc))))
+
+    (it "doesn't move if there are no spaces"
+          (let [fish (fish/make)
+                world (-> (world/make 1 1)
+                          (world/set-cell [0 0] fish))
+                [loc cell] (animal/move fish [0 0] world)]
+            (should= cell fish)
+            (should= [0 0] loc)))))
 
 

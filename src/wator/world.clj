@@ -1,10 +1,17 @@
 (ns wator.world
   (:require [clojure.spec.alpha :as s]
             [wator
+             [cell :as cell]
              [water :as water]]))
 
+(s/def ::location (s/tuple int? int?))
+(s/def ::cell #(contains? % ::cell/type))
+(s/def ::cells (s/map-of ::location ::cell))
+(s/def ::bounds ::location)
+(s/def ::world (s/keys :req [::cells ::bounds]))
 
 (defn make [w h]
+  {:post [(s/valid? ::world %)]}
   (let [locs (for [x (range w) y (range h)] [x y])
         loc-water (interleave locs (repeat (water/make)))
         cells (apply hash-map loc-water)]

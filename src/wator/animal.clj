@@ -14,6 +14,8 @@
   (let [neighbors (world/neighbors world loc)
         destinations (filter #(water/is? (world/get-cell world %))
                              neighbors)
-        new-location (rand-nth destinations)]
+        new-location (if (empty? destinations)
+                       loc
+                       (rand-nth destinations))]
     [new-location animal]))
 
