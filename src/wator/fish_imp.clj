@@ -11,6 +11,6 @@
 (defmethod animal/move ::fish/fish [fish loc world]
   (animal/do-move fish loc world))
 
-(defmethod animal/reproduce ::fish/fish [fish]
-  )
+(defmethod animal/reproduce ::fish/fish [fish loc world]
+  (animal/do-reproduce fish loc world))
 
