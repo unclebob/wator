@@ -2,8 +2,10 @@
   (:require [clojure.spec.alpha :as s]
             [wator
              [config :as config]
+             [world :as world]
              [cell :as cell]
              [water :as water]
+             [fish :as fish]
              [animal :as animal]]))
 
 (s/def ::health int?)
@@ -34,13 +36,30 @@
 (defn decrement-health [shark]
   (update shark ::health dec))
 
+(defn feed [shark]
+  (update shark ::health + config/shark-eating-health))
+
+(defn eat [shark loc world]
+  (let [neighbors (world/neighbors world loc)
+        fishy-neighbors (filter #(fish/is? (world/get-cell world %))
+                                neighbors)]
+    (if (empty? fishy-neighbors)
+      nil
+      [{loc (water/make)}
+       {(rand-nth fishy-neighbors) (feed shark)}]))
+  )
+
 (defmethod cell/tick ::shark [shark loc world]
   (if (= 1 (health shark))
     [nil {loc (water/make)}]
-    (-> shark
-        (decrement-health)
-        (animal/tick loc world)))
-  )
+    (let [aged-shark (-> shark
+                         (animal/increment-age)
+                         (decrement-health))]
+      (if-let [reproduction (animal/reproduce aged-shark loc world)]
+        reproduction
+        (if-let [eaten (eat aged-shark loc world)]
+          eaten
+          (animal/move aged-shark loc world))))))
 
 (defmethod animal/move ::shark [shark loc world]
   (animal/do-move shark loc world))
@@ -48,5 +67,3 @@
 (defmethod animal/reproduce ::shark [shark loc world]
   (animal/do-reproduce shark loc world))
 
-(defn eat [shark loc world]
-  )

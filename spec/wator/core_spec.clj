@@ -194,6 +194,20 @@
                 dead-shark (world/get-cell aged-world [0 0])]
             (should (water/is? dead-shark))))
 
+    (it "eats when a fish is adjacent"
+      (let [world (-> (world/make 2 1)
+                      (world/set-cell [0 0] (fish/make))
+                      (world/set-cell [1 0] (shark/make)))
+            shark-ate-world (world/tick world)
+            full-shark (world/get-cell shark-ate-world [0 0])
+            where-shark-was (world/get-cell shark-ate-world [1 0])
+            expected-health (+ config/shark-starting-health
+                               config/shark-eating-health
+                               -1)]
+        (should (shark/is? full-shark))
+        (should (water/is? where-shark-was))
+        (should= expected-health (shark/health full-shark))))
+
     )
 
   )
