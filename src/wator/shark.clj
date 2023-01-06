@@ -37,7 +37,9 @@
   (update shark ::health dec))
 
 (defn feed [shark]
-  (update shark ::health + config/shark-eating-health))
+  (let [new-health (max config/shark-max-health
+                        (+ (health shark) config/shark-eating-health))]
+    (assoc shark ::health new-health)))
 
 (defn eat [shark loc world]
   (let [neighbors (world/neighbors world loc)

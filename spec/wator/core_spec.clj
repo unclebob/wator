@@ -203,9 +203,10 @@
             shark-ate-world (world/tick world)
             full-shark (world/get-cell shark-ate-world [0 0])
             where-shark-was (world/get-cell shark-ate-world [1 0])
-            expected-health (+ config/shark-starting-health
-                               config/shark-eating-health
-                               -1)]
+            expected-health (max config/shark-max-health
+                                 (+ config/shark-starting-health
+                                    config/shark-eating-health
+                                    -1))]
         (should (shark/is? full-shark))
         (should (water/is? where-shark-was))
         (should= expected-health (shark/health full-shark))))
@@ -233,9 +234,26 @@
             world (-> (world/make 3 3)
                       (world/set-cell [1 1] shark))
             failed (animal/reproduce shark [1 1] world)]
-        (should-be-nil failed)))
-  )
+        (should-be-nil failed))))
 
-)
+  (context "fish"
+    (it "usually remains fish"
+      (with-redefs [rand (stub :rand {:return 0.0})]
+        (let [fish (fish/make)
+              world (world/make 1 1)
+              [from to] (cell/tick fish [0 0] world)]
+          (should-be-nil from)
+          (should (fish/is? (get to [0 0])))
+          )))
+
+    (it "occasionally evolves into a shark"
+      (with-redefs [rand (stub :rand {:return 1.0})]
+        (let [fish (fish/make)
+              world (world/make 1 1)
+              [from to] (cell/tick fish [0 0] world)]
+          (should-be-nil from)
+          (should (shark/is? (get to [0 0]))))))))
+
+
 
 
