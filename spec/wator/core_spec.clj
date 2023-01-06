@@ -171,6 +171,31 @@
               failed (animal/reproduce animal [1 1] world)]
           (should-be-nil failed)))))
 
+  (context "shark"
+    (it "starts with some health"
+      (let [shark (shark/make)]
+        (should= config/shark-starting-health
+                 (shark/health shark))))
+
+    (it "loses health with time"
+      (let [small-world (-> (world/make 1 1)
+                            (world/set-cell [0 0] (shark/make)))
+            aged-world (world/tick small-world)
+            aged-shark (world/get-cell aged-world [0 0])]
+        (should= (dec config/shark-starting-health)
+                 (shark/health aged-shark))))
+
+    (it "dies when health goes to zero"
+          (let [sick-shark (-> (shark/make)
+                               (shark/set-health 1))
+                small-world (-> (world/make 1 1)
+                                (world/set-cell [0 0] sick-shark))
+                aged-world (world/tick small-world)
+                dead-shark (world/get-cell aged-world [0 0])]
+            (should (water/is? dead-shark))))
+
+    )
+
   )
 
 
