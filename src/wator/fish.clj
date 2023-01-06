@@ -2,7 +2,8 @@
   (:require [clojure.spec.alpha :as s]
             [wator
              [cell :as cell]
-             [animal :as animal]]))
+             [animal :as animal]]
+            [wator.config :as config]))
 
 (s/def ::fish (s/and #(= ::fish (::cell/type %))
                      ::animal/animal))
@@ -16,5 +17,8 @@
 
 (defmethod animal/make-child ::fish [fish]
   (make))
+
+(defmethod animal/get-reproduction-age ::fish [fish]
+  config/fish-reproduction-age)
 
 

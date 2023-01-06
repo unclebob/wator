@@ -1,10 +1,25 @@
 (ns wator.shark
-  (:require [wator
+  (:require [clojure.spec.alpha :as s]
+            [wator
+             [config :as config]
              [cell :as cell]
              [animal :as animal]]))
 
+(s/def ::shark (s/and #(= ::shark (::cell/type %))
+                      ::animal/animal))
+(defn is? [cell]
+  (= ::shark (::cell/type cell)))
+
 (defn make []
-  )
+  {:post [(s/valid? ::shark %)]}
+  (merge {::cell/type ::shark}
+         (animal/make)))
+
+(defmethod animal/make-child ::shark [fish]
+  (make))
+
+(defmethod animal/get-reproduction-age ::shark [shark]
+  config/shark-reproduction-age)
 
 (defmethod cell/tick ::shark [shark loc world]
   (animal/tick shark loc world)

@@ -3,8 +3,7 @@
             [wator
              [world :as world]
              [cell :as cell]
-             [water :as water]
-             [config :as config]]))
+             [water :as water]]))
 
 (s/def ::age int?)
 (s/def ::animal (s/keys :req [::age]))
@@ -12,6 +11,7 @@
 (defmulti move (fn [animal & args] (::cell/type animal)))
 (defmulti reproduce (fn [animal & args] (::cell/type animal)))
 (defmulti make-child ::cell/type)
+(defmulti get-reproduction-age ::cell/type)
 
 (defn make []
   {::age 0})
@@ -46,7 +46,7 @@
       [{loc (water/make)} {new-location animal}])))
 
 (defn do-reproduce [animal loc world]
-  (if (>= (age animal) config/fish-reproduction-age)
+  (if (>= (age animal) (get-reproduction-age animal))
     (let [neighbors (world/neighbors world loc)
           birth-places (filter #(water/is? (world/get-cell world %))
                                neighbors)]
