@@ -4,8 +4,8 @@
              [animal :as animal]
              [fish :as fish]]))
 
-(defmethod cell/tick ::fish/fish [fish]
-  (animal/tick fish)
+(defmethod cell/tick ::fish/fish [fish loc world]
+  (animal/tick fish loc world)
   )
 
 (defmethod animal/move ::fish/fish [fish loc world]

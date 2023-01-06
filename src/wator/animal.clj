@@ -3,8 +3,8 @@
             [wator
              [world :as world]
              [cell :as cell]
-             [water :as water]]
-            [wator.config :as config]))
+             [water :as water]
+             [config :as config]]))
 
 (s/def ::age int?)
 (s/def ::animal (s/keys :req [::age]))
@@ -22,17 +22,28 @@
 (defn set-age [animal age]
   (assoc animal ::age age))
 
-(defn tick [animal]
-  )
+(defn increment-age [animal]
+  (update animal ::age inc))
+
+(defn tick [animal loc world]
+  (let [aged-animal (increment-age animal)
+        reproduction (reproduce aged-animal loc world)]
+    (if reproduction
+      reproduction
+      (move aged-animal loc world))))
 
 (defn do-move [animal loc world]
   (let [neighbors (world/neighbors world loc)
+        moved-into (get world :moved-into #{})
+        available-neighbors (remove moved-into neighbors)
         destinations (filter #(water/is? (world/get-cell world %))
-                             neighbors)
+                             available-neighbors)
         new-location (if (empty? destinations)
                        loc
                        (rand-nth destinations))]
-    [new-location animal]))
+    (if (= new-location loc)
+      [nil {loc animal}]
+      [{loc (water/make)} {new-location animal}])))
 
 (defn do-reproduce [animal loc world]
   (if (>= (age animal) config/fish-reproduction-age)
@@ -41,7 +52,7 @@
                                neighbors)]
       (if (empty? birth-places)
         nil
-        [loc (set-age animal 0)
-         (rand-nth birth-places) (make-child animal)]))
+        [{loc (set-age animal 0)}
+         {(rand-nth birth-places) (make-child animal)}]))
     nil))
 

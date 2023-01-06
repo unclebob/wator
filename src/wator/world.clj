@@ -1,21 +1,26 @@
 (ns wator.world
   (:require [clojure.spec.alpha :as s]
             [wator
-             [cell :as cell]
-             [water :as water]]))
+             [cell :as cell]]))
 
 (s/def ::location (s/tuple int? int?))
 (s/def ::cell #(contains? % ::cell/type))
 (s/def ::cells (s/map-of ::location ::cell))
 (s/def ::bounds ::location)
-(s/def ::world (s/keys :req [::cells ::bounds]))
+(s/def ::world (s/and (s/keys :req [::cells ::bounds])
+                      #(= (::type %) ::world)))
+
+(defmulti tick ::type)
+(defmulti make-cell (fn [factory-type cell-type] factory-type))
 
 (defn make [w h]
   {:post [(s/valid? ::world %)]}
   (let [locs (for [x (range w) y (range h)] [x y])
-        loc-water (interleave locs (repeat (water/make)))
+        default-cell (make-cell ::world :default-cell)
+        loc-water (interleave locs (repeat default-cell))
         cells (apply hash-map loc-water)]
-    {::cells cells
+    {::type ::world
+     ::cells cells
      ::bounds [w h]}))
 
 (defn set-cell [world loc cell]
@@ -34,3 +39,5 @@
         neighbors (for [dx (range -1 2) dy (range -1 2)]
                     (wrap world [(+ x dx) (+ y dy)]))]
     (remove #(= loc %) neighbors)))
+
+
