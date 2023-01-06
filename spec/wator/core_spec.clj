@@ -128,7 +128,9 @@
 
     (it "reproduces"
       (doseq [scenario [{:constructor fish/make :tester fish/is?}
-                        {:constructor shark/make :tester shark/is?}]]
+                        {:constructor #(-> (shark/make)
+                                           (shark/set-health (inc config/shark-reproduction-health)))
+                         :tester shark/is?}]]
         (let [animal ((:constructor scenario))
               reproduction-age (animal/get-reproduction-age animal)
               animal (animal/set-age animal reproduction-age)
@@ -186,13 +188,13 @@
                  (shark/health aged-shark))))
 
     (it "dies when health goes to zero"
-          (let [sick-shark (-> (shark/make)
-                               (shark/set-health 1))
-                small-world (-> (world/make 1 1)
-                                (world/set-cell [0 0] sick-shark))
-                aged-world (world/tick small-world)
-                dead-shark (world/get-cell aged-world [0 0])]
-            (should (water/is? dead-shark))))
+      (let [sick-shark (-> (shark/make)
+                           (shark/set-health 1))
+            small-world (-> (world/make 1 1)
+                            (world/set-cell [0 0] sick-shark))
+            aged-world (world/tick small-world)
+            dead-shark (world/get-cell aged-world [0 0])]
+        (should (water/is? dead-shark))))
 
     (it "eats when a fish is adjacent"
       (let [world (-> (world/make 2 1)
@@ -208,8 +210,32 @@
         (should (water/is? where-shark-was))
         (should= expected-health (shark/health full-shark))))
 
-    )
+    (it "shares health with both daughters after reproduction"
+      (let [initial-health (inc config/shark-reproduction-health)
+            pregnant-shark (-> (shark/make)
+                               (animal/set-age (inc config/shark-reproduction-age))
+                               (shark/set-health initial-health))
+            world (-> (world/make 2 1)
+                      (world/set-cell [0 0] pregnant-shark))
+            new-world (world/tick world)
+            daughter1 (world/get-cell new-world [0 0])
+            daughter2 (world/get-cell new-world [1 0])
+            expected-health (quot (dec initial-health) 2)]
+        (should (shark/is? daughter1))
+        (should (shark/is? daughter2))
+        (should= expected-health (shark/health daughter1))
+        (should= expected-health (shark/health daughter2))))
 
+    (it "doesn't reproduce if not healthy enough"
+      (let [shark (-> (shark/make)
+                      (shark/set-health (dec config/shark-reproduction-health))
+                      (animal/set-age config/shark-reproduction-age))
+            world (-> (world/make 3 3)
+                      (world/set-cell [1 1] shark))
+            failed (animal/reproduce shark [1 1] world)]
+        (should-be-nil failed)))
   )
+
+)
 
 

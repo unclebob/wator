@@ -65,5 +65,16 @@
   (animal/do-move shark loc world))
 
 (defmethod animal/reproduce ::shark [shark loc world]
-  (animal/do-reproduce shark loc world))
+  (if (< (health shark) config/shark-reproduction-health)
+    nil
+    (if-let [reproduction (animal/do-reproduce shark loc world)]
+      (let [[from to] reproduction
+            from-loc (-> from keys first)
+            to-loc (-> to keys first)
+            daughter-health (quot (health shark) 2)
+            from-shark (-> from vals first (set-health daughter-health))
+            to-shark (-> to vals first (set-health daughter-health))]
+        [{from-loc from-shark}
+         {to-loc to-shark}])
+      nil)))
 
